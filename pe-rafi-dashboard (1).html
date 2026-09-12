@@ -1,0 +1,774 @@
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PE RAFI — Slot Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0c10;
+      --panel-bg: rgba(18, 22, 28, 0.78);
+      --card-bg: rgba(26, 31, 39, 0.65);
+      --card-hover: rgba(33, 40, 50, 0.85);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(255, 107, 0, 0.35);
+      --orange: #ff6b00;
+      --orange-hover: #ff8533;
+      --orange-glow: rgba(255, 107, 0, 0.22);
+      --text: #f0f2f5;
+      --text-muted: #8c96a5;
+      --booked-bg: rgba(255, 107, 0, 0.12);
+      --booked-border: rgba(255, 107, 0, 0.45);
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(255, 107, 0, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(255, 107, 0, 0.05) 0%, transparent 45%);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 40px;
+    }
+
+    /* Lock Screen Overlay */
+    #lock-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 12, 16, 0.94);
+      backdrop-filter: blur(14px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .lock-box {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px var(--orange-glow);
+      text-align: center;
+    }
+
+    .lock-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: var(--orange);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .lock-desc {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin-bottom: 24px;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(12, 15, 20, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .input-field:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px var(--orange-glow);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--orange);
+      color: #0b0d11;
+      width: 100%;
+      margin-top: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-primary:hover {
+      background: var(--orange-hover);
+      box-shadow: 0 0 16px var(--orange-glow);
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .error-msg {
+      color: var(--danger);
+      font-size: 0.82rem;
+      margin-top: 10px;
+      display: none;
+    }
+
+    /* Dashboard Layout */
+    .dashboard-container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(10px);
+    }
+
+    @media (min-width: 640px) {
+      header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .brand-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--orange);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .brand-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .date-nav-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .date-nav-btn:hover {
+      border-color: var(--orange);
+      color: var(--orange);
+    }
+
+    /* Stats Banner */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+
+    .stat-val {
+      font-size: 1.5rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text);
+    }
+
+    .stat-val.accent {
+      color: var(--orange);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Quick Action Toolbar */
+    .action-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 4px 2px;
+    }
+
+    /* Slot List */
+    .slots-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .slot-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+    }
+
+    @media (min-width: 600px) {
+      .slot-card {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .slot-card.is-booked {
+      background: var(--booked-bg);
+      border-color: var(--booked-border);
+      box-shadow: 0 4px 15px rgba(255, 107, 0, 0.08);
+    }
+
+    .slot-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 220px;
+    }
+
+    .slot-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--orange);
+    }
+
+    .slot-toggle {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .slot-toggle.open {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      border-color: var(--border);
+    }
+
+    .slot-toggle.open:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--text);
+    }
+
+    .slot-toggle.booked {
+      background: var(--orange);
+      color: #0b0d11;
+    }
+
+    .slot-toggle.booked:hover {
+      background: var(--orange-hover);
+    }
+
+    .slot-note-input {
+      flex: 1;
+      background: rgba(10, 13, 17, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    .slot-note-input:focus {
+      border-color: var(--orange);
+    }
+
+    .slot-note-input::placeholder {
+      color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 30px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1e2530;
+      color: var(--orange);
+      border: 1px solid var(--border-accent);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      z-index: 2000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Passcode Unlock Screen -->
+  <div id="lock-screen" style="display: none;">
+    <div class="lock-box">
+      <h2 class="lock-title">PE RAFI Dash</h2>
+      <p class="lock-desc">Enter authorization passcode to proceed</p>
+      <form id="lock-form" onsubmit="handleUnlock(event)">
+        <input type="password" id="passcode-input" class="input-field" placeholder="Enter Passcode..." autocomplete="current-password" autofocus="">
+        <p id="error-msg" class="error-msg" style="display: none;">Invalid passcode. Please verify and try again.</p>
+        <button type="submit" class="btn btn-primary">Unlock Dashboard</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Container -->
+  <div class="dashboard-container">
+    <header>
+      <div>
+        <h1 class="brand-title">PE RAFI SLOT DASHBOARD</h1>
+        <p class="brand-sub">Daily Sim Rig &amp; Gaming Slot Scheduler (10 AM - 10 PM)</p>
+      </div>
+
+      <div class="nav-controls">
+        <button class="date-nav-btn" title="Previous Day" onclick="changeDate(-1)">‹</button>
+        <input type="date" id="date-picker" class="input-field" style="width: 160px; padding: 7px 12px; font-family: 'JetBrains Mono', monospace;" onchange="onDateChanged(this.value)">
+        <button class="date-nav-btn" title="Next Day" onclick="changeDate(1)">›</button>
+      </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div id="stat-total" class="stat-val">13</div>
+        <div class="stat-label">Total Slots</div>
+      </div>
+      <div class="stat-card">
+        <div id="stat-booked" class="stat-val accent">0</div>
+        <div class="stat-label">Booked Slots</div>
+      </div>
+      <div class="stat-card">
+        <div id="stat-open" class="stat-val">13</div>
+        <div class="stat-label">Available</div>
+      </div>
+      <div class="stat-card">
+        <div id="stat-rate" class="stat-val accent">0%</div>
+        <div class="stat-label">Occupancy Rate</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="action-toolbar">
+      <button class="btn btn-outline" onclick="copyDaySummary()">
+        📋 Copy Day's List
+      </button>
+      <button class="btn btn-outline" onclick="resetDayData()">
+        🔄 Clear Day Slots
+      </button>
+    </div>
+
+    <!-- Slot Rows -->
+    <div class="slots-container" id="slots-list"><div class="slot-card ">
+          <div class="slot-left">
+            <div class="slot-time">10:00 AM</div>
+            <button class="slot-toggle open" onclick="toggleSlot(0)">
+              Open
+            </button>
+          </div>
+          <input type="text" class="slot-note-input" placeholder="Gamer tag, customer name, phone number..." value="" onchange="updateNote(0, this.value)">
+        </div><div class="slot-card ">
+          <div class="slot-left">
+            <div class="slot-time">11:00 AM</div>
+            <button class="slot-toggle open" onclick="toggleSlot(1)">
+              Open
+            </button>
+          </div>
+          <input type="text" class="slot-note-input" placeholder="Gamer tag, customer name, phone number..." value="" onchange="updateNote(1, this.value)">
+        </div><div class="slot-card ">
+          <div class="slot-left">
+            <div class="slot-time">12:00 PM</div>
+            <button class="slot-toggle open" onclick="toggleSlot(2)">
+              Open
+            </button>
+          </div>
+          <input type="text" class="slot-note-input" placeholder="Gamer tag, customer name, phone number..." value="" onchange="updateNote(2, this.value)">
+        </div><div class="slot-card ">
+          <div class="slot-left">
+            <div class="slot-time">1:00 PM</div>
+            <button class="slot-toggle open" onclick="toggleSlot(3)">
+              Open
+            </button>
+          </div>
+          <input type="text" class="slot-note-input" placeholder="Gamer tag, customer name, phone number..." value="" onchange="updateNote(3, this.value)">
+        </div><div class="slot-card ">
+          <div class="slot-left">
+            <div class="slot-time">2:00 PM</div>
+            <button class="slot-toggle open" onclick="toggleSlot(4)">
+              Open
+            </button>
+          </div>
+          <input type="text" class="slot-note-input" placeholder="Gamer tag, customer name, phone number..." value="" onchange="updateNote(4, this.value)">
+        </div><div class="slot-card ">
+          <div class="slot-left">
+            <div class="slot-time">3:00 PM</div>
+            <button class="slot-toggle open" onclick="toggleSlot(5)">
+              Open
+            </button>
+          </div>
+          <input type="text" class="slot-note-input" placeholder="Gamer tag, customer name, phone number..." value="" onchange="updateNote(5, this.value)">
+        </div><div class="slot-card ">
+          <div class="slot-left">
+            <div class="slot-time">4:00 PM</div>
+            <button class="slot-toggle open" onclick="toggleSlot(6)">
+              Open
+            </button>
+          </div>
+          <input type="text" class="slot-note-input" placeholder="Gamer tag, customer name, phone number..." value="" onchange="updateNote(6, this.value)">
+        </div><div class="slot-card ">
+          <div class="slot-left">
+            <div class="slot-time">5:00 PM</div>
+            <button class="slot-toggle open" onclick="toggleSlot(7)">
+              Open
+            </button>
+          </div>
+          <input type="text" class="slot-note-input" placeholder="Gamer tag, customer name, phone number..." value="" onchange="updateNote(7, this.value)">
+        </div><div class="slot-card ">
+          <div class="slot-left">
+            <div class="slot-time">6:00 PM</div>
+            <button class="slot-toggle open" onclick="toggleSlot(8)">
+              Open
+            </button>
+          </div>
+          <input type="text" class="slot-note-input" placeholder="Gamer tag, customer name, phone number..." value="" onchange="updateNote(8, this.value)">
+        </div><div class="slot-card ">
+          <div class="slot-left">
+            <div class="slot-time">7:00 PM</div>
+            <button class="slot-toggle open" onclick="toggleSlot(9)">
+              Open
+            </button>
+          </div>
+          <input type="text" class="slot-note-input" placeholder="Gamer tag, customer name, phone number..." value="" onchange="updateNote(9, this.value)">
+        </div><div class="slot-card ">
+          <div class="slot-left">
+            <div class="slot-time">8:00 PM</div>
+            <button class="slot-toggle open" onclick="toggleSlot(10)">
+              Open
+            </button>
+          </div>
+          <input type="text" class="slot-note-input" placeholder="Gamer tag, customer name, phone number..." value="" onchange="updateNote(10, this.value)">
+        </div><div class="slot-card ">
+          <div class="slot-left">
+            <div class="slot-time">9:00 PM</div>
+            <button class="slot-toggle open" onclick="toggleSlot(11)">
+              Open
+            </button>
+          </div>
+          <input type="text" class="slot-note-input" placeholder="Gamer tag, customer name, phone number..." value="" onchange="updateNote(11, this.value)">
+        </div><div class="slot-card ">
+          <div class="slot-left">
+            <div class="slot-time">10:00 PM</div>
+            <button class="slot-toggle open" onclick="toggleSlot(12)">
+              Open
+            </button>
+          </div>
+          <input type="text" class="slot-note-input" placeholder="Gamer tag, customer name, phone number..." value="" onchange="updateNote(12, this.value)">
+        </div></div>
+
+    <!-- Footer & Direct File Download -->
+    <footer>
+      <button class="btn btn-primary" style="max-width: 280px;" onclick="downloadThisHtml()">
+        ⬇ Download HTML File
+      </button>
+      <p style="font-size: 0.75rem; color: var(--text-muted);">
+        Standalone Client-Side File • Auto-saves to LocalStorage
+      </p>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast">Day list copied to clipboard!</div>
+
+  <script>
+    const PASSCODE_SECRET = "RAFIQ@078691";
+    let currentDate = getTodayString();
+    let dayData = {};
+
+    function getTodayString() {
+      const d = new Date();
+      const yr = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const da = String(d.getDate()).padStart(2, '0');
+      return `${yr}-${mo}-${da}`;
+    }
+
+    function init() {
+      // Check auth state
+      if (sessionStorage.getItem('pe_rafi_auth') === 'true') {
+        document.getElementById('lock-screen').style.display = 'none';
+      }
+      
+      const picker = document.getElementById('date-picker');
+      picker.value = currentDate;
+      loadDay(currentDate);
+    }
+
+    function handleUnlock(e) {
+      e.preventDefault();
+      const val = document.getElementById('passcode-input').value;
+      const errorMsg = document.getElementById('error-msg');
+      
+      if (val === PASSCODE_SECRET) {
+        sessionStorage.setItem('pe_rafi_auth', 'true');
+        document.getElementById('lock-screen').style.display = 'none';
+        errorMsg.style.display = 'none';
+      } else {
+        errorMsg.style.display = 'block';
+      }
+    }
+
+    function formatTimeLabel(hour) {
+      const period = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+      return `${displayHour}:00 ${period}`;
+    }
+
+    function generateDefaultSlots() {
+      const slots = [];
+      for (let h = 10; h <= 22; h++) {
+        slots.push({
+          hour: h,
+          label: formatTimeLabel(h),
+          booked: false,
+          note: ""
+        });
+      }
+      return slots;
+    }
+
+    function loadDay(dateStr) {
+      const stored = localStorage.getItem(`pe_slots_${dateStr}`);
+      if (stored) {
+        dayData[dateStr] = JSON.parse(stored);
+      } else {
+        dayData[dateStr] = generateDefaultSlots();
+        saveDay(dateStr);
+      }
+      renderSlots();
+      updateStats();
+    }
+
+    function saveDay(dateStr) {
+      localStorage.setItem(`pe_slots_${dateStr}`, JSON.stringify(dayData[dateStr]));
+    }
+
+    function renderSlots() {
+      const container = document.getElementById('slots-list');
+      container.innerHTML = '';
+      const slots = dayData[currentDate] || [];
+
+      slots.forEach((slot, index) => {
+        const card = document.createElement('div');
+        card.className = `slot-card ${slot.booked ? 'is-booked' : ''}`;
+        
+        card.innerHTML = `
+          <div class="slot-left">
+            <div class="slot-time">${slot.label}</div>
+            <button 
+              class="slot-toggle ${slot.booked ? 'booked' : 'open'}" 
+              onclick="toggleSlot(${index})">
+              ${slot.booked ? 'Booked' : 'Open'}
+            </button>
+          </div>
+          <input 
+            type="text" 
+            class="slot-note-input" 
+            placeholder="Gamer tag, customer name, phone number..."
+            value="${escapeHtml(slot.note || '')}"
+            onchange="updateNote(${index}, this.value)"
+          />
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleSlot(index) {
+      const slots = dayData[currentDate];
+      slots[index].booked = !slots[index].booked;
+      saveDay(currentDate);
+      renderSlots();
+      updateStats();
+    }
+
+    function updateNote(index, value) {
+      const slots = dayData[currentDate];
+      slots[index].note = value;
+      saveDay(currentDate);
+    }
+
+    function updateStats() {
+      const slots = dayData[currentDate] || [];
+      const total = slots.length;
+      const booked = slots.filter(s => s.booked).length;
+      const open = total - booked;
+      const rate = total > 0 ? Math.round((booked / total) * 100) : 0;
+
+      document.getElementById('stat-total').innerText = total;
+      document.getElementById('stat-booked').innerText = booked;
+      document.getElementById('stat-open').innerText = open;
+      document.getElementById('stat-rate').innerText = `${rate}%`;
+    }
+
+    function onDateChanged(newDate) {
+      if (!newDate) return;
+      currentDate = newDate;
+      loadDay(currentDate);
+    }
+
+    function changeDate(daysOffset) {
+      const parts = currentDate.split('-');
+      const d = new Date(parts[0], parts[1] - 1, parts[2]);
+      d.setDate(d.getDate() + daysOffset);
+      
+      const yr = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const da = String(d.getDate()).padStart(2, '0');
+      currentDate = `${yr}-${mo}-${da}`;
+      document.getElementById('date-picker').value = currentDate;
+      loadDay(currentDate);
+    }
+
+    function resetDayData() {
+      if (confirm(`Reset all slots for ${currentDate}?`)) {
+        dayData[currentDate] = generateDefaultSlots();
+        saveDay(currentDate);
+        renderSlots();
+        updateStats();
+      }
+    }
+
+    function showToast(text) {
+      const t = document.getElementById('toast');
+      t.innerText = text;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    function copyDaySummary() {
+      const slots = dayData[currentDate] || [];
+      let summary = `🎮 PE RAFI SLOTS - ${currentDate}\n===============================\n`;
+      slots.forEach(s => {
+        const status = s.booked ? `[BOOKED] ${s.note ? ' - ' + s.note : ''}` : `[OPEN]`;
+        summary += `${s.label.padEnd(9)} : ${status}\n`;
+      });
+      navigator.clipboard.writeText(summary).then(() => {
+        showToast("Day list copied to clipboard!");
+      }).catch(() => {
+        showToast("Failed to copy. Please allow clipboard permissions.");
+      });
+    }
+
+    function downloadThisHtml() {
+      const blob = new Blob([document.documentElement.outerHTML], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'pe-rafi-dashboard.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    window.onload = init;
+  </script>
+
+
+</body></html>
