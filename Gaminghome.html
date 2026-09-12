@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PE RAFI — Booking Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root {
+    --charcoal: #15171c;
+    --panel: #1d2027;
+    --line: #33373f;
+    --orange: #ff6a1a;
+    --orange-dark: #e05a10;
+    --red: #ff4d4d;
+    --green: #2ecc71;
+    --text: #eceae4;
+    --muted: #9296a0;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--charcoal);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+  }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 48px 24px 60px;
+  }
+
+  .eyebrow {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--orange);
+    margin: 0 0 8px;
+  }
+
+  h1 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: clamp(28px, 6vw, 40px);
+    margin: 0 0 12px;
+  }
+
+  .tagline {
+    color: var(--muted);
+    font-size: 15px;
+    margin: 0 0 32px;
+    max-width: 60ch;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin-bottom: 36px;
+  }
+
+  @media (max-width: 560px) {
+    .stats { grid-template-columns: 1fr; }
+  }
+
+  .stat {
+    background: var(--panel);
+    padding: 18px 20px;
+  }
+
+  .stat .num {
+    font-family: 'Oswald', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+  }
+
+  .stat .label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .stat.total .num { color: var(--text); }
+  .stat.booked .num { color: var(--red); }
+  .stat.open .num { color: var(--orange); }
+
+  .table-wrap {
+    border: 1px solid var(--line);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 1fr 0.8fr;
+    gap: 12px;
+    align-items: center;
+    padding: 14px 18px;
+    background: var(--panel);
+  }
+
+  .row + .row {
+    border-top: 1px solid var(--line);
+  }
+
+  .row.header {
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: none;
+    padding-bottom: 10px;
+    border-top: none;
+  }
+
+  .row .time {
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+  }
+
+  .row input[type="text"] {
+    background: var(--charcoal);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: 3px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    width: 100%;
+  }
+
+  .row input[type="text"]:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 1px;
+  }
+
+  .row input[type="text"]::placeholder {
+    color: var(--muted);
+  }
+
+  .badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 3px;
+    display: inline-block;
+    white-space: nowrap;
+    justify-self: start;
+  }
+
+  .row.booked .badge {
+    color: var(--red);
+    background: rgba(255, 77, 77, 0.12);
+  }
+
+  .row.available .badge {
+    color: var(--orange);
+    background: rgba(255, 106, 26, 0.12);
+  }
+
+  .toggle-btn {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 3px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+    justify-self: start;
+  }
+
+  .toggle-btn:hover,
+  .toggle-btn:focus-visible {
+    border-color: var(--orange);
+    color: var(--orange);
+  }
+
+  @media (max-width: 640px) {
+    .row { grid-template-columns: 1fr; gap: 8px; }
+    .row.header { display: none; }
+    .row .time { font-family: 'Oswald', sans-serif; font-size: 16px; }
+  }
+
+  .note {
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .export-btn {
+    margin-top: 24px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 3px;
+    border: none;
+    background: var(--orange);
+    color: #15171c;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .export-btn:hover,
+  .export-btn:focus-visible {
+    background: var(--orange-dark);
+  }
+
+  /* Lock screen */
+  #lock-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .lock-card {
+    max-width: 340px;
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 32px 28px;
+    text-align: center;
+  }
+
+  .lock-card .eyebrow {
+    justify-content: center;
+    display: flex;
+  }
+
+  .lock-card h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .lock-card .tagline {
+    margin: 0 0 24px;
+    max-width: none;
+  }
+
+  .lock-card input[type="password"] {
+    width: 100%;
+    background: var(--charcoal);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 12px 14px;
+    border-radius: 3px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .lock-card input[type="password"]:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 1px;
+  }
+
+  .lock-card .unlock-btn {
+    width: 100%;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 12px;
+    border-radius: 3px;
+    border: none;
+    background: var(--orange);
+    color: #15171c;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .lock-card .unlock-btn:hover,
+  .lock-card .unlock-btn:focus-visible {
+    background: var(--orange-dark);
+  }
+
+  .lock-error {
+    color: var(--red);
+    font-size: 13px;
+    margin: 10px 0 0;
+    min-height: 16px;
+  }
+
+  #dashboard {
+    display: none;
+  }
+</style>
+</head>
+<body>
+  <div id="lock-screen">
+    <div class="lock-card">
+      <p class="eyebrow">PE RAFI Dashboard</p>
+      <h1>Enter passcode</h1>
+      <p class="tagline">This dashboard is private. Enter the passcode to continue.</p>
+      <input type="password" id="passcode-input" placeholder="Passcode" autocomplete="off">
+      <button class="unlock-btn" id="unlock-btn">Unlock</button>
+      <p class="lock-error" id="lock-error"></p>
+    </div>
+  </div>
+
+  <div id="dashboard">
+  <div class="wrap">
+    <p class="eyebrow">Bengaluru, Karnataka</p>
+    <h1>Booking dashboard</h1>
+    <p class="tagline">Today's slots for PE RAFI Gaming Setup — toggle a slot open or booked, and jot down who booked it.</p>
+
+    <div class="stats">
+      <div class="stat total">
+        <div class="num" id="stat-total">0</div>
+        <div class="label">Total slots</div>
+      </div>
+      <div class="stat booked">
+        <div class="num" id="stat-booked">0</div>
+        <div class="label">Booked</div>
+      </div>
+      <div class="stat open">
+        <div class="num" id="stat-open">0</div>
+        <div class="label">Open</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="row header">
+        <span>Time</span>
+        <span>Status</span>
+        <span>Customer / note</span>
+        <span></span>
+      </div>
+      <div id="rows"></div>
+    </div>
+
+    <button class="export-btn" id="export-btn">Copy today's list</button>
+
+    <p class="note">This dashboard only reflects what's on this device right now — it doesn't pull from the booking page automatically. Set today's slots by editing the SLOTS list at the bottom of the file, then use this page to mark them off through the day. Want the booking page and this dashboard to actually share live data? That needs a small backend behind both — happy to set that up when you're ready.</p>
+  </div>
+  </div>
+
+  <script>
+    // Change this to update the dashboard passcode.
+    const PASSCODE = "RAFIQ@078691";
+
+    const lockScreen = document.getElementById('lock-screen');
+    const dashboard = document.getElementById('dashboard');
+    const passcodeInput = document.getElementById('passcode-input');
+    const unlockBtn = document.getElementById('unlock-btn');
+    const lockError = document.getElementById('lock-error');
+
+    function tryUnlock() {
+      if (passcodeInput.value === PASSCODE) {
+        lockScreen.style.display = 'none';
+        dashboard.style.display = 'block';
+      } else {
+        lockError.textContent = 'Incorrect passcode. Try again.';
+        passcodeInput.value = '';
+        passcodeInput.focus();
+      }
+    }
+
+    unlockBtn.addEventListener('click', tryUnlock);
+    passcodeInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') tryUnlock();
+    });
+
+    // Edit this list each day to match the slots you're offering.
+    let SLOTS = [
+      { time: "10:00 AM – 11:00 AM", booked: true, note: "" },
+      { time: "11:00 AM – 12:00 PM", booked: false, note: "" },
+      { time: "12:00 PM – 01:00 PM", booked: false, note: "" },
+      { time: "01:00 PM – 02:00 PM", booked: true, note: "" },
+      { time: "02:00 PM – 03:00 PM", booked: false, note: "" },
+      { time: "03:00 PM – 04:00 PM", booked: false, note: "" },
+      { time: "04:00 PM – 05:00 PM", booked: true, note: "" },
+      { time: "05:00 PM – 06:00 PM", booked: false, note: "" },
+      { time: "06:00 PM – 07:00 PM", booked: false, note: "" },
+      { time: "07:00 PM – 08:00 PM", booked: false, note: "" },
+      { time: "08:00 PM – 09:00 PM", booked: true, note: "" },
+      { time: "09:00 PM – 10:00 PM", booked: false, note: "" }
+    ];
+
+    const rowsEl = document.getElementById('rows');
+    const statTotal = document.getElementById('stat-total');
+    const statBooked = document.getElementById('stat-booked');
+    const statOpen = document.getElementById('stat-open');
+    const exportBtn = document.getElementById('export-btn');
+
+    function render() {
+      rowsEl.innerHTML = '';
+      let bookedCount = 0;
+
+      SLOTS.forEach((slot, i) => {
+        if (slot.booked) bookedCount++;
+
+        const row = document.createElement('div');
+        row.className = 'row ' + (slot.booked ? 'booked' : 'available');
+
+        const time = document.createElement('span');
+        time.className = 'time';
+        time.textContent = slot.time;
+
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = slot.booked ? 'Booked' : 'Open';
+
+        const noteInput = document.createElement('input');
+        noteInput.type = 'text';
+        noteInput.placeholder = 'e.g. Rafi, 2 players';
+        noteInput.value = slot.note;
+        noteInput.addEventListener('input', (e) => {
+          SLOTS[i].note = e.target.value;
+        });
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'toggle-btn';
+        toggleBtn.textContent = slot.booked ? 'Mark open' : 'Mark booked';
+        toggleBtn.addEventListener('click', () => {
+          SLOTS[i].booked = !SLOTS[i].booked;
+          render();
+        });
+
+        row.appendChild(time);
+        row.appendChild(badge);
+        row.appendChild(noteInput);
+        row.appendChild(toggleBtn);
+        rowsEl.appendChild(row);
+      });
+
+      statTotal.textContent = SLOTS.length;
+      statBooked.textContent = bookedCount;
+      statOpen.textContent = SLOTS.length - bookedCount;
+    }
+
+    exportBtn.addEventListener('click', () => {
+      const lines = SLOTS.map(s =>
+        s.time + ' — ' + (s.booked ? 'Booked' : 'Open') + (s.note ? ' (' + s.note + ')' : '')
+      );
+      const text = lines.join('\n');
+      navigator.clipboard.writeText(text).then(() => {
+        exportBtn.textContent = 'Copied!';
+        setTimeout(() => { exportBtn.textContent = "Copy today's list"; }, 1500);
+      });
+    });
+
+    render();
+  </script>
+</body>
+</html>
