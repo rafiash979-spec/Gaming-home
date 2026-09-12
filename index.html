@@ -355,21 +355,15 @@
     const unlockBtn = document.getElementById('unlock-btn');
     const lockError = document.getElementById('lock-error');
 
-    function tryUnlock() {
-      if (passcodeInput.value === PASSCODE) {
-        lockScreen.style.display = 'none';
-        dashboard.style.display = 'block';
-      } else {
-        lockError.textContent = 'Incorrect passcode. Try again.';
-        passcodeInput.value = '';
-        passcodeInput.focus();
-      }
-    }
+    
+      function tryUnlock() {
+  lockScreen.style.display = 'none';
+  dashboard.style.display = 'block';
+}
 
-    unlockBtn.addEventListener('click', tryUnlock);
-    passcodeInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') tryUnlock();
-    });
+// Automatically unlock on load
+window.addEventListener('DOMContentLoaded', tryUnlock);
+
 
     // Edit this list each day to match the slots you're offering.
     let SLOTS = [
